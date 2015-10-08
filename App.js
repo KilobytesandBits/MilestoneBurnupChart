@@ -6,21 +6,28 @@ Ext.define('CustomApp', {
 	},
 
 	_createMilestoneWaspiDataStore : function() {
+		Ext.getBody().mask('Loading...');
 		milestoneWaspiDataStore = Ext.create('Rally.data.wsapi.Store', {
 			model : 'Milestone',
 			autoLoad : true,
-			compact: false,
-			context: {
-				project : Rally.environment.getContext().getProject()
-            },
+			context : {
+				project : Rally.environment.getContext().getProject(),
+				projectScopeUp : false,
+				projectScopeDown : true
+			},
 			fetch : [ 'Name', 'TargetDate', 'TargetProject' ],
+			limit : Infinity,
 			listeners : {
 				load : function(store, data, success) {
-					console.log("Data : " , data);
+					console.log("Data : ", data);
 					this._createMilestoneDataStore(data);
 				},
 				scope : this
-			}
+			},
+			sorters : [ {
+				property : 'Name',
+				direction : 'ASC'
+			} ]
 		});
 	},
 
@@ -36,8 +43,8 @@ Ext.define('CustomApp', {
 			milestoneArr.push(milestone);
 		});
 
-		console.log("milestoneArr : " , milestoneArr);
-		
+		console.log("milestoneArr : ", milestoneArr);
+
 		this.milestoneDataStore = Ext.create('Ext.data.Store', {
 			fields : [ 'Name', 'TargetDate', 'TargetProject' ],
 			data : milestoneArr
@@ -52,9 +59,19 @@ Ext.define('CustomApp', {
 			renderTo : Ext.getBody(),
 			displayField : 'Name',
 			queryMode : 'local',
-			valueField : 'Name'
+			valueField : 'Name',
+			border : 1,
+			style : {
+				borderColor : '#000000',
+				borderStyle : 'solid',
+				borderWidth : '1px'
+			},
+			width: 400,
+			padding: '10 5 5 10',
+			margin: '10 5 5 10'
 		});
 		this.add(this.milestonePicker);
+		Ext.getBody().unmask();
 	}
 
 });
