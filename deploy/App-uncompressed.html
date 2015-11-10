@@ -380,19 +380,20 @@
 		return [ {
 			as : 'Ideal',
 			f : function(row, index, summaryMetrics, seriesData) {
-				var data = _.last(seriesData), max = _.reduce(_.filter(_.keys(data), function(key) {
-					return _.contains(stateFieldValues, key);
-				}), function(accum, key) {
-					return accum + data[key];
-				}, 0), increments = seriesData.length - 1, incrementAmount;
+				console.log("seriesData", seriesData);
+				var data = _.last(seriesData), max = seriesData[seriesData.length-1].Planned, increments = seriesData.length - 1, incrementAmount;
 				if (increments === 0) {
 					return max;
 				}
+				
+				console.log("max", max);
+				console.log("increments", increments);
 				incrementAmount = max / increments;
+				console.log("incrementAmount", incrementAmount);
 				return Math.floor(100 * (index * incrementAmount)) / 100;
 			},
 			display : 'line'
-		}, {
+		}/*, {
 			as : 'Actual',
 			f : function(row, index, summaryMetrics, seriesData) {
 				var today = Rally.util.DateTime.toIsoString(new Date());
@@ -404,13 +405,15 @@
 				console.log("endIndex" , endIndex);
 				if (index <= endIndex) {
 					var acceptedSeriesData = _.pluck(seriesData, 'Accepted');
+					console.log("acceptedSeriesData" , acceptedSeriesData);
 					var slope = (acceptedSeriesData[0] - acceptedSeriesData[endIndex]) / (0 - endIndex);
+					console.log("slope" , slope);
 					console.log("index * slope", index * slope);
 					return index * slope;
 				}
 			},
 			display : 'line'
-		} ];
+		}*/ ];
 	},
 
 	getMetrics : function() {
