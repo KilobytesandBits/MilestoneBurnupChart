@@ -215,9 +215,8 @@ Ext.define('CustomApp', {
 			that.down('rallychart').destroy();
 		}
 
-		console.log("that.scheduleStateValues", that.scheduleStateValues);
-		console.log("that.piRecords", that.piRecords);
-
+		console.log("_.min(_.compact(_.invoke(that.piRecords, 'get', 'ActualStartDate')))", _.min(_.compact(_.invoke(that.piRecords, 'get', 'ActualStartDate'))));
+		console.log("that.piRecords",that.piRecords);
 		this.add({
 			xtype : 'rallychart',
 			flex : 1,
@@ -230,6 +229,7 @@ Ext.define('CustomApp', {
 				startDate : _.min(_.compact(_.invoke(that.piRecords, 'get', 'ActualStartDate'))),
 				enableProjects : true
 			},
+			chartColors: ["#A16E3A", "#1B7F25", "#B1B1B7", "#2E2EAC"],
 			chartConfig : that._getChartConfig(),
 			listeners : {
 				afterrender : function(obj, eOpts ) {					
@@ -294,7 +294,7 @@ Ext.define('CustomApp', {
 			} ],
 			tooltip : {
 				formatter : function() {
-					return '' + this.x + '<br />' + this.series.name + ': ' + this.y;
+					return '' + this.x + '<br />' + this.series.name + ': ' + Math.ceil(this.y);
 				}
 			},
 			plotOptions : {

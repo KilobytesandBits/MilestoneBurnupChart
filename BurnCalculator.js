@@ -42,27 +42,21 @@ Ext.define('Rally.example.BurnCalculator', {
 				return Math.floor(100 * (index * incrementAmount)) / 100;
 			},
 			display : 'line'
-		}/*, {
+		}, {
 			as : 'Actual',
 			f : function(row, index, summaryMetrics, seriesData) {
 				var today = Rally.util.DateTime.toIsoString(new Date());
 				var endIndex = _.findIndex(seriesData, function(data) {
 					return data.tick > today;
 				});
-				console.log("today" , today);
-				console.log("index" , index);
-				console.log("endIndex" , endIndex);
 				if (index <= endIndex) {
-					var acceptedSeriesData = _.pluck(seriesData, 'Accepted');
-					console.log("acceptedSeriesData" , acceptedSeriesData);
+					var acceptedSeriesData = _.pluck(seriesData, 'Completed');
 					var slope = (acceptedSeriesData[0] - acceptedSeriesData[endIndex]) / (0 - endIndex);
-					console.log("slope" , slope);
-					console.log("index * slope", index * slope);
 					return index * slope;
 				}
 			},
 			display : 'line'
-		}*/ ];
+		} ];
 	},
 
 	getMetrics : function() {
