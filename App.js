@@ -144,7 +144,7 @@ Ext.define('CustomApp', {
 	 * Create the burnup chart and draw it
 	 */
 	_drawBurnUpChart : function() {
-		console.log("_drawBurnUpChart started for this.selectedMilestone:", this.selectedMilestone);
+		Ext.getBody().mask('Generating Burnup Chart...');
 
 		Deft.Promise.all([ this._loadPIsInMilestone(), this._loadScheduleStateValues() ]).then({
 			success : function() {
@@ -152,24 +152,6 @@ Ext.define('CustomApp', {
 			},
 			scope : this
 		});
-		//this._loadPIsInMilestone();
-		/*Deft.Promise.all([ this._loadPIsInMilestone()]).then({
-			success : function() {
-				console.log("_drawBurnUpChart success: ");
-				this._addChart();
-			},
-			scope : this
-		});*/
-
-		/*
-		 * Ext.create('Rally.data.lookback.SnapshotStore', { findConfig : {
-		 * "_ItemHierarchy" : 21619727142,//selected milestone value 40132266915
-		 * "_TypeHierarchy" : "HierarchicalRequirement", "Children" : null },
-		 * fetch : [ 'ScheduleState', 'PlanEstimate' ], hydrate : [
-		 * 'ScheduleState' ], limit : Infinity, autoLoad : true, listeners : {
-		 * load : function(store, data, success) { console.log("Data --------- > ",
-		 * data); } } });
-		 */
 	},
 
 	_loadScheduleStateValues : function() {
@@ -189,8 +171,7 @@ Ext.define('CustomApp', {
 
 	_loadPIsInMilestone : function() {
 		var that = this;
-		console.log("_loadPIsInMilestone started for this.selectedMilestone:", this.selectedMilestone);
-		Ext.create('Rally.data.wsapi.Store', {
+		return Ext.create('Rally.data.wsapi.Store', {
 			model : 'TypeDefinition',
 			autoLoad : true,
 			fetch : [ 'TypePath' ],
@@ -200,47 +181,42 @@ Ext.define('CustomApp', {
 			}, {
 				property : 'Ordinal',
 				value : 0
-			} ],
-			listeners : {
-				load : function(store, records, success) {
-					console.log("_loadPIsInMilestone records : ", records);
-					this.piType = records[0].get('TypePath');
-					console.log("_loadPIsInMilestone this.piType : ", this.piType);
-					console.log("_loadPIsInMilestone this.selectedMilestone : ", this.selectedMilestone);
-					Ext.create('Rally.data.wsapi.Store', {
-						model : that.piType,
-						autoLoad : true,
-						fetch : [ 'ObjectID', 'Project', 'Name', 'PreliminaryEstimate', 'ActualStartDate', 'PlannedEndDate', 'AcceptedLeafStoryPlanEstimateTotal', 'LeafStoryPlanEstimateTotal' ],
-						filters : [ {
-							property : 'Milestones.ObjectID',
-							operator : '=',
-							value : this.selectedMilestone
-						} ],
-						context : {
-							project : null
-						},
-						limit : Infinity,
-						listeners : {
-							load : function(store, piRecords, success) {
-								console.log("_loadPIsInMilestone success:", piRecords);
-								that.piRecords = piRecords;
-								that._addChart();
-							}
-						},
-						scope : this
-					});
-				},
-				scope : this
-			}
+			} ]
+		}).load().then({
+			success : function(records) {
+				this.piType = records[0].get('TypePath');
+				return Ext.create('Rally.data.wsapi.Store', {
+					model : this.piType,
+					fetch : [ 'ObjectID', 'Project', 'Name', 'PreliminaryEstimate', 'ActualStartDate', 'PlannedEndDate', 'AcceptedLeafStoryPlanEstimateTotal', 'LeafStoryPlanEstimateTotal' ],
+					filters : [ {
+						property : 'Milestones.ObjectID',
+						operator : '=',
+						value : this.selectedMilestone
+					} ],
+					context : {
+						project : null
+					},
+					limit : Infinity
+				}).load().then({
+					success : function(piRecords) {
+						this.piRecords = piRecords;
+					},
+					scope : this
+				});
+			},
+			scope : this
 		});
 	},
 
 	_addChart : function() {
 		var that = this;
 
-		if (this.down('rallychart')) {
-			this.down('rallychart').destroy();
+		if (that.down('rallychart')) {
+			that.down('rallychart').destroy();
 		}
+
+		console.log("that.scheduleStateValues", that.scheduleStateValues);
+		console.log("that.piRecords", that.piRecords);
 
 		this.add({
 			xtype : 'rallychart',
@@ -254,8 +230,15 @@ Ext.define('CustomApp', {
 				startDate : _.min(_.compact(_.invoke(that.piRecords, 'get', 'ActualStartDate'))),
 				enableProjects : true
 			},
-			chartConfig : that._getChartConfig()
+			chartConfig : that._getChartConfig(),
+			listeners : {
+				afterrender : function(obj, eOpts ) {					
+					Ext.getBody().unmask();
+				},
+				scope : this
+			}
 		});
+		//Ext.getBody().unmask();
 	},
 
 	/**
