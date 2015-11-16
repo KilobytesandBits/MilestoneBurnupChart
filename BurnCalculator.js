@@ -46,11 +46,12 @@ Ext.define('Rally.example.BurnCalculator', {
 			as : 'Actual',
 			f : function(row, index, summaryMetrics, seriesData) {
 				var today = Rally.util.DateTime.toIsoString(new Date());
-				var endIndex = seriesData.length-1;
-				/*var endIndex = _.findIndex(seriesData, function(data) {
-					console.log("data.tick", data.tick);
+				var endIndex = _.findIndex(seriesData, function(data) {
 					return data.tick > today;
-				});*/
+				});
+				if(endIndex < 0){ //Assuming for expired milestone endIndex is coming as -1
+					endIndex = seriesData.length-1;
+				}
 				if (index <= endIndex) {
 					var acceptedSeriesData = _.pluck(seriesData, 'Completed');
 					var slope = (acceptedSeriesData[0] - acceptedSeriesData[endIndex]) / (0 - endIndex);
