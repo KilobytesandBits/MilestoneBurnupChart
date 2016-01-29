@@ -63,7 +63,7 @@
 				projectScopeDown : true
 			},
 			filters : filter,
-			fetch : [ 'ObjectID', 'FormattedID', 'Name', 'TargetDate', 'TargetProject' ],
+			fetch : [ 'ObjectID', 'FormattedID', 'Name', 'TargetDate', 'TargetProject' , 'c_ActiveStartDate'],
 			limit : Infinity,
 			listeners : {
 				load : function(store, data, success) {
@@ -101,11 +101,12 @@
 			milestone.Name = data.data.Name;
 			milestone.TargetDate = data.data.TargetDate;
 			milestone.TargetProject = data.data.TargetProject;
+			milestone.ActiveStartDate= data.data.c_ActiveStartDate;
 			milestoneArr.push(milestone);
 		});
 
 		this.milestoneDataStore = Ext.create('Ext.data.Store', {
-			fields : [ 'ObjectID', 'FormattedID', 'Name', 'TargetDate', 'TargetProject' ],
+			fields : [ 'ObjectID', 'FormattedID', 'Name', 'TargetDate', 'TargetProject', 'ActiveStartDate' ],
 			data : milestoneArr
 		});
 		this._createMilestonePicker();
@@ -140,7 +141,10 @@
 			listeners : {
 				select : function(combo, records, eOpts) {
 					console.log("Selected Milestone : ", combo.getValue());
+					console.log("Selected records : ", records);
+					console.log("Selected eOpts : ", eOpts);
 					this.selectedMilestone = combo.getValue();
+					this.selectedMilestoneObj = records;
 					this._drawBurnUpChart();
 				},
 				scope : this
@@ -224,8 +228,12 @@
 			that.down('rallychart').destroy();
 		}
 
-		console.log("_.min(_.compact(_.invoke(that.piRecords, 'get', 'ActualStartDate')))", _.min(_.compact(_.invoke(that.piRecords, 'get', 'ActualStartDate'))));
+		console.log("_.invoke(that.selectedMilestoneObj, 'get', 'ActiveStartDate')", _.compact(_.invoke(that.selectedMilestoneObj, 'get', 'ActiveStartDate')));
+		console.log("_.invoke(that.selectedMilestoneObj, 'get', 'ActiveStartDate')", (_.isEmpty(_.compact(_.invoke(that.selectedMilestoneObj, 'get', 'ActiveStartDate')))));
 		console.log("that.piRecords",that.piRecords);
+		
+		var chartStartDate = _.isEmpty(_.compact(_.invoke(that.selectedMilestoneObj, 'get', 'ActiveStartDate'))) ? _.min(_.compact(_.invoke(that.piRecords, 'get', 'ActualStartDate'))) : _.first(_.compact(_.invoke(that.selectedMilestoneObj, 'get', 'ActiveStartDate'))); 
+		
 		this.add({
 			xtype : 'rallychart',
 			flex : 1,
@@ -235,7 +243,7 @@
 			calculatorConfig : {
 				completedScheduleStateNames : [ 'Accepted', 'Released' ],
 				stateFieldValues : that.scheduleStateValues,
-				startDate : _.min(_.compact(_.invoke(that.piRecords, 'get', 'ActualStartDate'))),
+				startDate : chartStartDate,
 				enableProjects : true
 			},
 			chartColors: ["#A16E3A", "#1B7F25", "#B1B1B7", "#2E2EAC"],
@@ -249,6 +257,10 @@
 		});
 		//Ext.getBody().unmask();
 	},
+	
+	/*_updateRallyDateDuration : function(obj){
+		console.log("obj",obj);
+	},*/
 
 	/**
 	 * Generate the store config to retrieve all snapshots for all leaf child
@@ -375,11 +387,12 @@
 			as : 'Actual',
 			f : function(row, index, summaryMetrics, seriesData) {
 				var today = Rally.util.DateTime.toIsoString(new Date());
-				var endIndex = seriesData.length-1;
-				/*var endIndex = _.findIndex(seriesData, function(data) {
-					console.log("data.tick", data.tick);
+				var endIndex = _.findIndex(seriesData, function(data) {
 					return data.tick > today;
-				});*/
+				});
+				if(endIndex < 0){ //Assuming for expired milestone endIndex is coming as -1
+					endIndex = seriesData.length-1;
+				}
 				if (index <= endIndex) {
 					var acceptedSeriesData = _.pluck(seriesData, 'Completed');
 					var slope = (acceptedSeriesData[0] - acceptedSeriesData[endIndex]) / (0 - endIndex);

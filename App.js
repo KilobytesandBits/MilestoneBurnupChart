@@ -54,7 +54,7 @@ Ext.define('CustomApp', {
 				projectScopeDown : true
 			},
 			filters : filter,
-			fetch : [ 'ObjectID', 'FormattedID', 'Name', 'TargetDate', 'TargetProject' ],
+			fetch : [ 'ObjectID', 'FormattedID', 'Name', 'TargetDate', 'TargetProject' , 'c_ActiveStartDate'],
 			limit : Infinity,
 			listeners : {
 				load : function(store, data, success) {
@@ -92,11 +92,12 @@ Ext.define('CustomApp', {
 			milestone.Name = data.data.Name;
 			milestone.TargetDate = data.data.TargetDate;
 			milestone.TargetProject = data.data.TargetProject;
+			milestone.ActiveStartDate= data.data.c_ActiveStartDate;
 			milestoneArr.push(milestone);
 		});
 
 		this.milestoneDataStore = Ext.create('Ext.data.Store', {
-			fields : [ 'ObjectID', 'FormattedID', 'Name', 'TargetDate', 'TargetProject' ],
+			fields : [ 'ObjectID', 'FormattedID', 'Name', 'TargetDate', 'TargetProject', 'ActiveStartDate' ],
 			data : milestoneArr
 		});
 		this._createMilestonePicker();
@@ -130,8 +131,11 @@ Ext.define('CustomApp', {
 			},
 			listeners : {
 				select : function(combo, records, eOpts) {
-					console.log("Selected Milestone : ", combo.getValue());
+					//console.log("Selected Milestone : ", combo.getValue());
+					//console.log("Selected records : ", records);
+					//console.log("Selected eOpts : ", eOpts);
 					this.selectedMilestone = combo.getValue();
+					this.selectedMilestoneObj = records;
 					this._drawBurnUpChart();
 				},
 				scope : this
@@ -215,8 +219,12 @@ Ext.define('CustomApp', {
 			that.down('rallychart').destroy();
 		}
 
-		console.log("_.min(_.compact(_.invoke(that.piRecords, 'get', 'ActualStartDate')))", _.min(_.compact(_.invoke(that.piRecords, 'get', 'ActualStartDate'))));
-		console.log("that.piRecords",that.piRecords);
+		//console.log("_.invoke(that.selectedMilestoneObj, 'get', 'ActiveStartDate')", _.compact(_.invoke(that.selectedMilestoneObj, 'get', 'ActiveStartDate')));
+		//console.log("_.invoke(that.selectedMilestoneObj, 'get', 'ActiveStartDate')", (_.isEmpty(_.compact(_.invoke(that.selectedMilestoneObj, 'get', 'ActiveStartDate')))));
+		//console.log("that.piRecords",that.piRecords);
+		
+		var chartStartDate = _.isEmpty(_.compact(_.invoke(that.selectedMilestoneObj, 'get', 'ActiveStartDate'))) ? _.min(_.compact(_.invoke(that.piRecords, 'get', 'ActualStartDate'))) : _.first(_.compact(_.invoke(that.selectedMilestoneObj, 'get', 'ActiveStartDate'))); 
+		
 		this.add({
 			xtype : 'rallychart',
 			flex : 1,
@@ -226,7 +234,7 @@ Ext.define('CustomApp', {
 			calculatorConfig : {
 				completedScheduleStateNames : [ 'Accepted', 'Released' ],
 				stateFieldValues : that.scheduleStateValues,
-				startDate : _.min(_.compact(_.invoke(that.piRecords, 'get', 'ActualStartDate'))),
+				startDate : chartStartDate,
 				enableProjects : true
 			},
 			chartColors: ["#A16E3A", "#1B7F25", "#B1B1B7", "#2E2EAC"],
@@ -240,6 +248,10 @@ Ext.define('CustomApp', {
 		});
 		//Ext.getBody().unmask();
 	},
+	
+	/*_updateRallyDateDuration : function(obj){
+		console.log("obj",obj);
+	},*/
 
 	/**
 	 * Generate the store config to retrieve all snapshots for all leaf child
