@@ -224,6 +224,7 @@ Ext.define('CustomApp', {
 		//console.log("that.piRecords",that.piRecords);
 		
 		var chartStartDate = _.isEmpty(_.compact(_.invoke(that.selectedMilestoneObj, 'get', 'ActiveStartDate'))) ? _.min(_.compact(_.invoke(that.piRecords, 'get', 'ActualStartDate'))) : _.first(_.compact(_.invoke(that.selectedMilestoneObj, 'get', 'ActiveStartDate'))); 
+		var chartEndDate = _.first(_.compact(_.invoke(that.selectedMilestoneObj, 'get', 'TargetDate')));
 		
 		this.add({
 			xtype : 'rallychart',
@@ -235,6 +236,7 @@ Ext.define('CustomApp', {
 				completedScheduleStateNames : [ 'Accepted', 'Released' ],
 				stateFieldValues : that.scheduleStateValues,
 				startDate : chartStartDate,
+				endDate : chartEndDate,
 				enableProjects : true
 			},
 			chartColors: ["#A16E3A", "#1B7F25", "#B1B1B7", "#2E2EAC"],

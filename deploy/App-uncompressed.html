@@ -140,9 +140,9 @@
 			},
 			listeners : {
 				select : function(combo, records, eOpts) {
-					console.log("Selected Milestone : ", combo.getValue());
-					console.log("Selected records : ", records);
-					console.log("Selected eOpts : ", eOpts);
+					//console.log("Selected Milestone : ", combo.getValue());
+					//console.log("Selected records : ", records);
+					//console.log("Selected eOpts : ", eOpts);
 					this.selectedMilestone = combo.getValue();
 					this.selectedMilestoneObj = records;
 					this._drawBurnUpChart();
@@ -228,11 +228,12 @@
 			that.down('rallychart').destroy();
 		}
 
-		console.log("_.invoke(that.selectedMilestoneObj, 'get', 'ActiveStartDate')", _.compact(_.invoke(that.selectedMilestoneObj, 'get', 'ActiveStartDate')));
-		console.log("_.invoke(that.selectedMilestoneObj, 'get', 'ActiveStartDate')", (_.isEmpty(_.compact(_.invoke(that.selectedMilestoneObj, 'get', 'ActiveStartDate')))));
-		console.log("that.piRecords",that.piRecords);
+		//console.log("_.invoke(that.selectedMilestoneObj, 'get', 'ActiveStartDate')", _.compact(_.invoke(that.selectedMilestoneObj, 'get', 'ActiveStartDate')));
+		//console.log("_.invoke(that.selectedMilestoneObj, 'get', 'ActiveStartDate')", (_.isEmpty(_.compact(_.invoke(that.selectedMilestoneObj, 'get', 'ActiveStartDate')))));
+		//console.log("that.piRecords",that.piRecords);
 		
 		var chartStartDate = _.isEmpty(_.compact(_.invoke(that.selectedMilestoneObj, 'get', 'ActiveStartDate'))) ? _.min(_.compact(_.invoke(that.piRecords, 'get', 'ActualStartDate'))) : _.first(_.compact(_.invoke(that.selectedMilestoneObj, 'get', 'ActiveStartDate'))); 
+		var chartEndDate = _.first(_.compact(_.invoke(that.selectedMilestoneObj, 'get', 'TargetDate')));
 		
 		this.add({
 			xtype : 'rallychart',
@@ -244,6 +245,7 @@
 				completedScheduleStateNames : [ 'Accepted', 'Released' ],
 				stateFieldValues : that.scheduleStateValues,
 				startDate : chartStartDate,
+				endDate : chartEndDate,
 				enableProjects : true
 			},
 			chartColors: ["#A16E3A", "#1B7F25", "#B1B1B7", "#2E2EAC"],
